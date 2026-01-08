@@ -1,0 +1,2709 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ecologist PDA + Desktop</title>
+
+  <style>
+    :root{
+      --lab-bg: #061013;
+      --lab-bg2:#08171b;
+      --lab-panel:#0b1c21;
+      --lab-line:#1a3942;
+      --lab-text:#d7f3ff;
+      --lab-muted:#85b6c9;
+
+      --lab-accent:#58c7ff;
+      --lab-accent2:#2f7fa3;
+
+      --lab-warn:#ffd77a;
+      --lab-good:#67e28a;
+      --lab-grey:#b9c6cf;
+      --lab-bad:#ff6b6b;
+
+      --sys-font: 'Tahoma','MS Sans Serif','Segoe UI',system-ui,sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+
+      --w95-bg:#c0c0c0;
+      --w95-face:#dfdfdf;
+      --w95-shadow:#808080;
+      --w95-blue:#000080;
+      --w95-text:#000;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      height:100vh;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: radial-gradient(circle at top, #1a2328 0%, #07090b 55%, #020203 100%);
+      font-family:var(--sys-font);
+      color:var(--lab-text);
+    }
+
+    .topbar{
+      position:fixed;
+      top:0; left:0; right:0;
+      height:42px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 10px;
+      background:linear-gradient(180deg,#0c1115,#070b0e);
+      border-bottom:1px solid #1b2522;
+      z-index:999;
+      font-family:var(--mono);
+    }
+    .brand{display:flex; gap:10px; align-items:center; color:#a3b7be; font-size:12px; letter-spacing:.08em; text-transform:uppercase;}
+    .brand .dot{width:8px;height:8px;border-radius:99px;background:var(--lab-accent);box-shadow:0 0 12px rgba(88,199,255,.35);}
+    .modeSwitch{display:flex; gap:8px; align-items:center;}
+    .hint{color:#a0b3ba; font-size:11px; user-select:none; white-space:nowrap;}
+
+    .btn{
+      font-family:var(--mono);
+      border:1px solid #2a3b36;
+      background:#0b1216;
+      color:#e6f6ff;
+      padding:6px 10px;
+      cursor:pointer;
+      font-size:12px;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+    .btn:hover{filter:brightness(1.08)}
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{border-color:#3f5b52;background:#0f1b20}
+
+    .viewport{
+      width:100%;
+      height:calc(100vh - 42px);
+      padding-top:42px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .pdaWrap{
+      display:block;
+      width:1240px;
+      height:820px;
+      position:relative;
+    }
+    .pda-chassis{
+      position:absolute; inset:0;
+      border-radius:32px;
+      background:
+        radial-gradient(circle at 55% 20%, rgba(255,255,255,0.09), transparent 58%),
+        radial-gradient(circle at 40% 120%, rgba(88,199,255,0.1), transparent 65%),
+        linear-gradient(180deg, #151f24, #040607 70%);
+      box-shadow:
+        0 30px 90px rgba(0,0,0,.75),
+        inset 0 0 0 2px rgba(255,255,255,.03),
+        inset 0 0 0 11px rgba(0,0,0,.55);
+      z-index:0;
+    }
+    .pda-side{
+      position:absolute;
+      top:80px;
+      bottom:80px;
+      width:42px;
+      border-radius:30px;
+      background:
+        repeating-linear-gradient(180deg, rgba(0,0,0,0.8) 0px, rgba(0,0,0,0.8) 4px, rgba(35,55,63,0.95) 4px, rgba(35,55,63,0.95) 6px);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.03), 0 0 32px rgba(0,0,0,0.9);
+      z-index:1;
+    }
+    .pda-side-left{left:34px;}
+    .pda-side-right{right:34px;}
+
+    .pda-top-slot{
+      position:absolute;
+      left:140px;
+      right:140px;
+      top:40px;
+      height:26px;
+      border-radius:16px;
+      background:linear-gradient(180deg, #050809, #020304);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,0.05),0 14px 30px rgba(0,0,0,0.8);
+      z-index:1;
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      padding:0 18px;
+      gap:10px;
+    }
+    .top-slot-led{
+      width:10px;height:10px;
+      border-radius:999px;
+      background:radial-gradient(circle at 30% 30%, #bfeaff, #58c7ff);
+      box-shadow:0 0 10px rgba(88,199,255,0.8);
+    }
+    .top-slot-label{
+      font-family:var(--mono);
+      font-size:10px;
+      color:#8ca4ac;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+
+    .pda-bottom-lights{
+      position:absolute;
+      left:140px;
+      right:140px;
+      bottom:38px;
+      height:26px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 28px;
+      z-index:1;
+    }
+    .pda-bottom-lights .pill{
+      width:70px;height:12px;
+      border-radius:999px;
+      border:1px solid rgba(88,199,255,0.2);
+      background:radial-gradient(circle at 30% 40%, rgba(88,199,255,0.7), rgba(0,0,0,0.8));
+      box-shadow:0 0 12px rgba(88,199,255,0.7), inset 0 0 0 1px rgba(0,0,0,0.9);
+      opacity:.7;
+    }
+    .pda-bottom-lights .pill.warn{
+      border-color:rgba(255,215,122,0.8);
+      background:radial-gradient(circle at 30% 40%, rgba(255,215,122,0.9), rgba(0,0,0,0.8));
+      box-shadow:0 0 10px rgba(255,215,122,0.7), inset 0 0 0 1px rgba(0,0,0,0.9);
+    }
+
+    .pda-screen{
+      position:absolute;
+      left:102px;
+      top:86px;
+      width:980px;
+      height:660px;
+      border-radius:20px;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      z-index:2;
+      box-shadow:
+        0 0 0 2px rgba(0,0,0,0.9),
+        0 0 0 1px rgba(255,255,255,0.05),
+        0 18px 40px rgba(0,0,0,0.9);
+      background:
+        radial-gradient(circle at 8% 10%, rgba(255,255,255,0.06), transparent 60%),
+        radial-gradient(circle at 92% 90%, rgba(255,255,255,0.04), transparent 58%);
+    }
+
+    .pda-os-frame{
+      position:relative;
+      flex:1;
+      border-radius:15px;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 50% -30%, rgba(88,199,255,0.14), transparent 55%),
+        linear-gradient(180deg, var(--lab-bg2), var(--lab-bg) 70%);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.8), 0 0 0 1px rgba(0,0,0,.85);
+    }
+
+    .screen-noise{
+      position:absolute; inset:7px; border-radius:10px;
+      pointer-events:none;
+      opacity:0.16;
+      background-image:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 1px, transparent 1px, transparent 4px),
+        repeating-linear-gradient(90deg, rgba(0,0,0,0.22) 0px, rgba(0,0,0,0.22) 1px, transparent 1px, transparent 5px);
+      mix-blend-mode: soft-light;
+      animation: noise-move 8s steps(9) infinite;
+      z-index:30;
+    }
+    @keyframes noise-move{
+      0%{background-position:0 0,0 0}
+      50%{background-position:22px 18px,-16px 22px}
+      100%{background-position:0 0,0 0}
+    }
+    .screen-vignette{
+      position:absolute; inset:0; pointer-events:none;
+      background: radial-gradient(circle at 50% 35%, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.95) 100%);
+      opacity:.14;
+      z-index:20;
+    }
+
+    .title-bar{
+      height:32px;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 10px;
+      background: linear-gradient(to right, rgba(6,34,45,1), rgba(5,18,24,1));
+      border-bottom:1px solid rgba(0,0,0,.9);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+      font-family:var(--mono);
+      font-size:11px;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+    }
+    .title-left{display:flex; gap:10px; align-items:center;}
+    .title-icon{
+      width:14px;height:14px;
+      background: radial-gradient(circle at 40% 35%, rgba(88,199,255,0.9), rgba(7,25,33,0.95));
+      border:1px solid rgba(88,199,255,0.25);
+      box-shadow:0 0 10px rgba(88,199,255,0.18);
+    }
+    .titleText{display:flex; flex-direction:column; gap:1px}
+    .titleText .main{font-weight:800; color:var(--lab-text);}
+    .titleText .sub{font-size:10px; letter-spacing:.02em; text-transform:none; color:var(--lab-muted); font-family:var(--sys-font);}
+    .title-right{display:flex; gap:10px; align-items:center; color:var(--lab-muted); font-family:var(--mono);}
+    .zone-tag{
+      padding:2px 8px;
+      border:1px solid rgba(88,199,255,0.25);
+      background: rgba(0,0,0,0.25);
+      color:var(--lab-text);
+      font-size:10px;
+    }
+    .zone-tag.user{
+      border-color:rgba(88,199,255,0.25);
+      color:var(--lab-text);
+    }
+    .zone-tag.admin{
+      border-color:rgba(255,215,122,0.9);
+      color:#ffd77a;
+      box-shadow:0 0 8px rgba(255,215,122,0.45);
+    }
+    .icon-btn{
+      width:20px;height:20px;
+      border:1px solid rgba(88,199,255,0.20);
+      background: rgba(0,0,0,0.25);
+      cursor:pointer;
+      color:var(--lab-text);
+      font-size:12px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .icon-btn:hover{filter:brightness(1.08)}
+    .icon-btn:active{transform:translateY(1px)}
+
+    .actionBar{
+      height:28px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 10px;
+      border-top:1px solid #000;
+      background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.55));
+      color:var(--lab-muted);
+      font-size:10px;
+      font-family:var(--mono);
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+
+    .pda-home{
+      position:relative;
+      height:calc(100% - 32px - 28px);
+      padding:10px;
+    }
+    .homeHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      padding:10px 10px 10px;
+      border:1px solid rgba(88,199,255,0.14);
+      background: rgba(0,0,0,0.18);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.8);
+    }
+    .homeHeader .left{display:flex; flex-direction:column; gap:4px;}
+    .homeHeader .left b{letter-spacing:.12em; text-transform:uppercase; font-size:12px; font-family:var(--mono);}
+    .homeHeader .left span{color:var(--lab-muted); font-size:10px;}
+    .badge{
+      padding:2px 8px;
+      border:1px solid rgba(88,199,255,0.18);
+      background: rgba(0,0,0,0.20);
+      color:var(--lab-text);
+      letter-spacing:.06em;
+      font-family:var(--mono);
+      font-size:10px;
+    }
+
+    .appsGrid{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap:8px;
+    }
+    .appTile{
+      position:relative;
+      border:1px solid rgba(88,199,255,0.14);
+      background:
+        radial-gradient(circle at var(--hx,50%) var(--hy,50%), rgba(88,199,255,0.20), transparent 60%),
+        rgba(0,0,0,0.18);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.8);
+      padding:10px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      min-height:66px;
+      transition:transform .07s ease, box-shadow .07s ease, border-color .07s ease, background .07s ease;
+      overflow:hidden;
+    }
+    .appTile::after{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: radial-gradient(circle at var(--hx,50%) var(--hy,50%), rgba(255,255,255,0.10), transparent 65%);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .08s ease;
+      mix-blend-mode:screen;
+    }
+    .appTile:hover{
+      transform:translateY(-1px) scale(1.01);
+      box-shadow:
+        inset 0 0 0 1px rgba(0,0,0,0.9),
+        0 0 18px rgba(88,199,255,0.4);
+      border-color:rgba(88,199,255,0.45);
+    }
+    .appTile:hover::after{opacity:1}
+    .appTile:active{transform:translateY(0) scale(1.0)}
+    .appTile .label{display:flex; flex-direction:column; gap:5px; position:relative; z-index:1;}
+    .appTile .label b{font-size:12px; letter-spacing:.12em; text-transform:uppercase; font-family:var(--mono);}
+    .appTile .label span{font-size:10px; color:var(--lab-muted);}
+    .appTile .glyph{
+      width:34px;height:34px;
+      border:1px solid rgba(88,199,255,0.22);
+      background: radial-gradient(circle at 35% 35%, rgba(88,199,255,0.5), rgba(0,0,0,0.35));
+      position:relative;
+      z-index:1;
+    }
+
+    .appWindow{
+      position:absolute;
+      inset:10px;
+      border:1px solid rgba(88,199,255,0.14);
+      background: linear-gradient(180deg, var(--lab-bg2), var(--lab-bg));
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.85);
+      display:none;
+      flex-direction:column;
+      overflow:hidden;
+      z-index:5;
+    }
+    .appTop{
+      height:34px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 10px;
+      background: linear-gradient(to right, rgba(6,34,45,1), rgba(5,18,24,1));
+      border-bottom:1px solid rgba(0,0,0,.9);
+      font-size:11px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--lab-text);
+      font-family:var(--mono);
+    }
+    .appTop .sub{color:var(--lab-muted); font-size:10px; letter-spacing:.06em; text-transform:none; font-family:var(--sys-font);}
+    .appBody{flex:1; min-height:0; overflow:auto; padding:10px;}
+
+    .panel{
+      border:1px solid rgba(88,199,255,0.12);
+      background: rgba(0,0,0,0.14);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.85);
+      padding:10px;
+    }
+    .panelTitle{
+      display:flex; justify-content:space-between; align-items:center;
+      margin:0 0 8px;
+      font-size:10px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--lab-muted);
+      font-family:var(--mono);
+    }
+
+    .field{
+      width:100%;
+      height:28px;
+      border:1px solid rgba(88,199,255,0.14);
+      padding:5px 8px;
+      font-size:12px;
+      font-family:var(--sys-font);
+      background: rgba(0,0,0,0.22);
+      color:var(--lab-text);
+      outline:none;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.85);
+    }
+    .field-sm{
+      height:24px;
+      font-size:11px;
+      padding:3px 6px;
+    }
+    textarea.field{height:auto; min-height:100px; resize:vertical; padding:8px}
+
+    .glossBtn{
+      background: rgba(0,0,0,0.25);
+      border:1px solid rgba(88,199,255,0.18);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.85);
+      padding:7px 10px;
+      font-size:10px;
+      color:var(--lab-text);
+      text-transform:uppercase;
+      letter-spacing:0.14em;
+      cursor:pointer;
+      font-family:var(--mono);
+    }
+    .glossBtn:hover{filter:brightness(1.08)}
+    .glossBtn:active{transform:translateY(1px)}
+    .glossBtn.primary{
+      background: rgba(88,199,255,0.18);
+      border-color: rgba(88,199,255,0.28);
+    }
+    .glossBtn.bigAction{
+      padding:7px 16px;
+      font-size:11px;
+      letter-spacing:.18em;
+      border-color:rgba(88,199,255,0.45);
+      background:rgba(88,199,255,0.28);
+      box-shadow:0 0 14px rgba(88,199,255,0.55), inset 0 0 0 1px rgba(0,0,0,0.9);
+      color:#e9f8ff;
+    }
+    .glossBtn.closeBtn{
+      border-color:rgba(255,107,107,0.6);
+      color:#ffc8c8;
+      background:rgba(40,0,0,0.6);
+      box-shadow:0 0 10px rgba(255,107,107,0.5), inset 0 0 0 1px rgba(0,0,0,0.9);
+    }
+    .glossBtn.closeBtn:hover{
+      filter:none;
+      background:rgba(60,0,0,0.8);
+    }
+
+    .seg{
+      display:inline-flex;
+      border:1px solid rgba(88,199,255,0.16);
+      background: rgba(0,0,0,0.18);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.85);
+      overflow:hidden;
+      font-family:var(--mono);
+    }
+    .seg button{
+      border:0;
+      padding:6px 10px;
+      background:transparent;
+      color:var(--lab-muted);
+      cursor:pointer;
+      font-size:11px;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      font-family:var(--mono);
+    }
+    .seg button.active{
+      color:var(--lab-text);
+      background: rgba(88,199,255,0.16);
+    }
+
+    .dbLayout{
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:10px;
+      height:100%;
+      min-height:0;
+    }
+    .dbList{min-height:0; display:flex; flex-direction:column; gap:10px}
+    .dbList .panel{flex:1; min-height:0; display:flex; flex-direction:column; gap:8px}
+    .dbListScroll{
+      flex:1; min-height:0; overflow:auto;
+      border:1px solid rgba(88,199,255,0.10);
+      background: rgba(0,0,0,0.18);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.85);
+    }
+
+    .dbTable{
+      width:100%;
+      border-collapse:collapse;
+      font-size:12px;
+    }
+    .dbTable th{
+      position:sticky; top:0; z-index:2;
+      text-align:left;
+      padding:8px 8px;
+      background: rgba(0,0,0,0.35);
+      border-bottom:1px solid rgba(88,199,255,0.12);
+      font-family:var(--mono);
+      font-size:10px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:#bfeaff;
+      vertical-align:bottom;
+    }
+    .thToggle{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .thToggle .miniBtn{
+      padding:2px 6px;
+      font-size:10px;
+      letter-spacing:.10em;
+      border:1px solid rgba(88,199,255,0.18);
+      background: rgba(0,0,0,0.22);
+      color:var(--lab-text);
+      cursor:pointer;
+      font-family:var(--mono);
+    }
+    .thToggle .miniBtn.active{background: rgba(88,199,255,0.18); border-color: rgba(88,199,255,0.28);}
+
+    .dbTable td{
+      padding:8px 8px;
+      border-bottom:1px solid rgba(88,199,255,0.07);
+      vertical-align:top;
+    }
+    .dbRow{
+      cursor:pointer;
+      transition:filter .08s ease;
+    }
+    .dbRow:hover{filter:brightness(1.07)}
+    .dbRow.selected{
+      outline:2px solid rgba(88,199,255,0.22);
+      outline-offset:-2px;
+    }
+
+    .tagId{
+      font-family:var(--mono);
+      font-size:10px;
+      color:var(--lab-text);
+      border:1px solid rgba(88,199,255,0.22);
+      background: rgba(0,0,0,0.22);
+      padding:2px 8px;
+      letter-spacing:.10em;
+      white-space:nowrap;
+      display:inline-block;
+    }
+
+    .repScore{
+      font-family:var(--mono);
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.06em;
+      text-align:right;
+      white-space:nowrap;
+    }
+    .repNeg{color:var(--lab-bad)}
+    .repGrey{color:var(--lab-grey)}
+    .repYel{color:var(--lab-warn)}
+    .repGrn{color:var(--lab-good)}
+
+    .wantedName{
+      color:var(--lab-bad);
+    }
+
+    .profileGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .profileFull{grid-column:1/-1}
+
+    .repControl{display:flex; gap:8px; align-items:center;}
+    .repValue{
+      width:120px; height:28px;
+      border:1px solid rgba(88,199,255,0.14);
+      background: rgba(0,0,0,0.22);
+      color:var(--lab-text);
+      font-family:var(--mono);
+      text-align:right;
+      padding:5px 8px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.85);
+    }
+    .repBtns{display:flex; flex-direction:column; gap:4px}
+    .repBtn{
+      width:26px;height:12px;
+      border:1px solid rgba(88,199,255,0.14);
+      background: rgba(0,0,0,0.20);
+      cursor:pointer;
+      color:var(--lab-text);
+      font-family:var(--mono);
+      font-size:10px;
+      line-height:1;
+    }
+
+    .tradeLayout{
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:10px;
+      height:100%;
+      min-height:0;
+    }
+    .tradeHeaderRow{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-bottom:8px;
+    }
+
+    .modeBanner{
+      padding:6px 10px;
+      border:1px solid rgba(88,199,255,0.18);
+      background: rgba(0,0,0,0.22);
+      font-family:var(--mono);
+      font-size:10px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--lab-text);
+      flex:1;
+      min-width:240px;
+    }
+    .modeBanner b{color:#bfeaff}
+
+    .tradeTable{
+      width:100%;
+      border-collapse:collapse;
+      font-size:12px;
+      color:var(--lab-text);
+    }
+    .tradeTable th{
+      position:sticky; top:0; z-index:2;
+      text-align:left;
+      padding:8px 8px;
+      background: rgba(0,0,0,0.35);
+      border-bottom: 1px solid rgba(88,199,255,0.12);
+      font-family:var(--mono);
+      font-size:10px;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      color:#bfeaff;
+    }
+    .tradeTable td{
+      border-bottom:1px solid rgba(88,199,255,0.07);
+      padding:7px 8px;
+      vertical-align:top;
+    }
+    .tradeRow:hover{background:rgba(255,255,255,0.03)}
+    .disabledItem{opacity:0.35; filter:grayscale(0.2);}
+    .qtyPill{display:inline-flex; gap:8px; align-items:center}
+    .qtyPill button{
+      width:22px;height:22px;
+      border:1px solid rgba(88,199,255,0.14);
+      background: rgba(0,0,0,0.18);
+      color:var(--lab-text);
+      cursor:pointer;
+      font-family:var(--mono);
+    }
+    .qtyPill span{min-width:22px; text-align:center; font-family:var(--mono)}
+
+    .availChk{
+      appearance:none;
+      width:16px;
+      height:16px;
+      border-radius:3px;
+      border:1px solid rgba(88,199,255,0.38);
+      background:#020608;
+      box-shadow:inset 0 0 0 1px rgba(0,0,0,0.9);
+      cursor:pointer;
+    }
+    .availChk:checked{
+      background:radial-gradient(circle at 35% 35%, #bfeaff, #58c7ff);
+      box-shadow:
+        0 0 6px rgba(88,199,255,0.85),
+        inset 0 0 0 1px rgba(0,0,0,0.9);
+    }
+    .availChk:disabled{
+      opacity:0.45;
+      cursor:default;
+      box-shadow:inset 0 0 0 1px rgba(0,0,0,0.9);
+    }
+
+    .bootCover{
+      position:absolute; inset:0;
+      background:#000;
+      z-index:9999;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      font-family:var(--mono);
+      color:#f4f4f4;
+      padding:18px 20px;
+    }
+    .bootLog{
+      position:relative;
+      font-size:13px;
+      line-height:1.2;
+      max-width:90ch;
+      white-space:pre;
+      text-align:left;
+      text-shadow: 0 0 10px rgba(180,235,255,0.7), 0 0 18px rgba(88,199,255,0.4);
+      margin-bottom:10px;
+      z-index:1;
+    }
+    .biosBar{position:relative;width:74%;height:10px;background:#111;border:1px solid #888;box-shadow: inset 0 0 4px #000;z-index:1;}
+    .biosFill{height:100%;width:0%;background: linear-gradient(to right, #bfeaff, #ffffff);box-shadow: 0 0 10px rgba(255,255,255,0.35);}
+    .biosStatus{margin-top:8px;font-size:11px;color:#cfcfcf;position:relative;z-index:1;}
+
+    .desktop{
+      display:none;
+      width:100%;
+      height:100%;
+      position:relative;
+      background:linear-gradient(180deg,#0a3a3a,#072e2e);
+      overflow:hidden;
+      font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:#fff;
+    }
+    .deskIcons{
+      position:absolute;
+      top:12px; left:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      width:190px;
+      font-size:13px;
+      text-shadow:0 1px 2px rgba(0,0,0,.45);
+    }
+    .icon{display:flex; align-items:center; gap:10px; user-select:none; cursor:default;}
+    .iconBox{width:30px;height:30px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);}
+
+    .taskbar{
+      position:absolute; left:0; right:0; bottom:0;
+      height:40px;
+      background:var(--w95-bg);
+      border-top:2px solid #fff;
+      box-shadow: inset 0 -1px 0 rgba(0,0,0,.35);
+      display:flex;
+      align-items:center;
+      padding:4px 6px;
+      gap:8px;
+      color:var(--w95-text);
+    }
+    .startBtn{
+      width:78px;height:30px;
+      background:var(--w95-face);
+      border:2px solid #fff;
+      border-right-color:var(--w95-shadow);
+      border-bottom-color:var(--w95-shadow);
+      display:flex; align-items:center; justify-content:center; gap:6px;
+      font-weight:600; user-select:none;
+    }
+    .startFlag{width:12px;height:12px;background:var(--w95-blue);}
+    .taskBtns{flex:1; display:flex; gap:6px; overflow:auto; padding:0 6px;}
+    .taskBtn{
+      min-width:150px;height:30px;
+      background:var(--w95-face);
+      border:2px solid #fff;
+      border-right-color:var(--w95-shadow);
+      border-bottom-color:var(--w95-shadow);
+      display:flex; align-items:center;
+      padding:0 10px;
+      gap:8px;
+      cursor:pointer;
+      white-space:nowrap;
+      user-select:none;
+    }
+    .taskBtn.active{
+      border:2px solid var(--w95-shadow);
+      border-right-color:#fff;
+      border-bottom-color:#fff;
+    }
+    .clock{
+      width:92px;height:30px;
+      background:var(--w95-face);
+      border:2px solid #fff;
+      border-right-color:var(--w95-shadow);
+      border-bottom-color:var(--w95-shadow);
+      display:flex; align-items:center; justify-content:center;
+      font-size:12px; user-select:none;
+    }
+
+    .win{
+      position:absolute;
+      width:760px;height:470px;
+      background:var(--w95-bg);
+      border:2px solid #fff;
+      border-right-color:var(--w95-shadow);
+      border-bottom-color:var(--w95-shadow);
+      box-shadow:6px 10px 18px rgba(0,0,0,.35);
+      display:flex; flex-direction:column;
+      min-width:380px; min-height:260px;
+    }
+    .winTitle{
+      height:28px;
+      background:var(--w95-blue);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 6px;
+      font-size:13px;
+      user-select:none;
+      cursor:move;
+    }
+    .winTitle .titleText{display:flex; align-items:center; gap:8px}
+    .miniIcon{width:14px;height:14px;background:#fff; opacity:.85}
+    .winButtons{display:flex; gap:4px}
+    .winBtn{
+      width:22px;height:20px;
+      background:var(--w95-face);
+      border:2px solid #fff;
+      border-right-color:var(--w95-shadow);
+      border-bottom-color:var(--w95-shadow);
+      display:flex; align-items:center; justify-content:center;
+      color:#000;
+      font-size:12px;
+      line-height:1;
+      user-select:none;
+      cursor:pointer;
+    }
+    .winBtn[data-act="close"]{
+      background:#b64040;
+      color:#fff;
+      border-color:#fff;
+      border-right-color:#7a1818;
+      border-bottom-color:#7a1818;
+      font-weight:700;
+    }
+    .winBtn[data-act="close"]:hover{
+      background:#d45050;
+    }
+    .winBody{
+      flex:1;
+      padding:10px;
+      overflow:auto;
+      font-size:13px;
+      color:#000;
+      background:var(--w95-bg);
+    }
+    .w95Panel{
+      background:var(--w95-face);
+      border:2px solid #fff;
+      border-right-color:var(--w95-shadow);
+      border-bottom-color:var(--w95-shadow);
+      padding:8px;
+      width:100%;
+    }
+    .w95Field{
+      background:#fff;
+      border:2px solid var(--w95-shadow);
+      border-right-color:#fff;
+      border-bottom-color:#fff;
+      padding:6px;
+      width:100%;
+      font-size:13px;
+      outline:none;
+    }
+    .w95Label{font-size:12px; margin:0 0 4px 0}
+    .w95List{
+      background:#fff;
+      border:2px solid var(--w95-shadow);
+      border-right-color:#fff;
+      border-bottom-color:#fff;
+      padding:0;
+      width:100%;
+      max-height:260px;
+      overflow:auto;
+    }
+    .w95Item{
+      padding:8px 10px;
+      border-bottom:1px solid #ddd;
+      cursor:default;
+    }
+    .w95Item:hover{background:#e8f0ff}
+    .w95Item:last-child{border-bottom:none}
+    .hide{display:none !important}
+
+    #receiptHint{
+      font-size:13px;
+      font-family:var(--mono);
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      color:var(--lab-accent);
+      min-height:18px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <span>ECOLOGIST SYSTEM</span>
+      <span class="hint">shared • role-gated</span>
+    </div>
+    <div class="modeSwitch">
+      <span class="hint">Switch:</span>
+      <button class="btn primary" id="btnPDA">PDA</button>
+      <button class="btn" id="btnDESK">DESKTOP</button>
+      <span class="hint">Ctrl+1 / Ctrl+2</span>
+    </div>
+  </div>
+
+  <div class="viewport">
+    <!-- PDA -->
+    <div class="pdaWrap" id="pdaWrap">
+      <div class="pda-chassis"></div>
+      <div class="pda-side pda-side-left"></div>
+      <div class="pda-side pda-side-right"></div>
+      <div class="pda-top-slot">
+        <div class="top-slot-label">ECO FIELD TERMINAL</div>
+        <div class="top-slot-led"></div>
+      </div>
+      <div class="pda-bottom-lights">
+        <div class="pill"></div>
+        <div class="pill warn"></div>
+        <div class="pill"></div>
+      </div>
+
+      <div class="pda-screen">
+        <div class="pda-os-frame">
+          <!-- BOOT -->
+          <div class="bootCover" id="bootCover">
+            <div class="bootLog" id="bootLog"></div>
+            <div class="biosBar"><div class="biosFill" id="biosFill"></div></div>
+            <div class="biosStatus" id="biosStatus">INITIALIZING...</div>
+          </div>
+
+          <!-- TITLE -->
+          <div class="title-bar">
+            <div class="title-left">
+              <div class="title-icon"></div>
+              <div class="titleText">
+                <div class="main">ECO FIELD PDA</div>
+                <div class="sub">Mobile research terminal</div>
+              </div>
+            </div>
+            <div class="title-right">
+              <span class="zone-tag user" id="accessTag">ACCESS: USER</span>
+              <button class="icon-btn" id="btnReboot" title="Reboot">⟲</button>
+              <button class="icon-btn" id="btnGoDesk" title="Open Desktop">⧉</button>
+              <span id="pdaClock">--:--:--</span>
+            </div>
+          </div>
+
+          <!-- HOME -->
+          <div class="pda-home" id="pdaHome">
+            <div class="homeHeader">
+              <div class="left">
+                <b>HOME</b>
+                <span>Open apps. Close to reduce clutter.</span>
+              </div>
+              <div class="right" style="display:flex; gap:8px; align-items:center;">
+                <span class="badge" id="queueBadge">NOTES: 0</span>
+                <span class="badge" id="receiptBadge">RECEIPTS: 0</span>
+                <span class="badge" id="sessionBadge">SESSION: LOCAL</span>
+              </div>
+            </div>
+
+            <div class="appsGrid">
+              <div class="appTile" data-open="appDatabase">
+                <div class="label"><b>Database</b><span>Stalker registry (shared)</span></div>
+                <div class="glyph"></div>
+              </div>
+              <div class="appTile" data-open="appNotes">
+                <div class="label"><b>Notes</b><span>Field notes → Desktop</span></div>
+                <div class="glyph"></div>
+              </div>
+              <div class="appTile" data-open="appTrade">
+                <div class="label"><b>Trade Menu</b><span>Prices + receipts</span></div>
+                <div class="glyph"></div>
+              </div>
+              <div class="appTile" data-open="appSettings">
+                <div class="label"><b>Settings</b><span>Role + device</span></div>
+                <div class="glyph"></div>
+              </div>
+            </div>
+
+            <!-- DATABASE -->
+            <div class="appWindow" id="appDatabase">
+              <div class="appTop">
+                <div>DATABASE <span class="sub">stalker registry</span></div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <button class="glossBtn closeBtn" data-close>Close</button>
+                </div>
+              </div>
+
+              <div class="appBody">
+                <div class="dbLayout">
+                  <!-- Left -->
+                  <div class="dbList">
+                    <div class="panel">
+                      <div class="panelTitle">
+                        <span>List</span>
+                        <span id="dbCount" style="font-family:var(--mono);">0 REC</span>
+                      </div>
+
+                      <input class="field" id="dbSearch" placeholder="Search name / id / task / notes" />
+
+                      <div style="height:8px"></div>
+
+                      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <div class="seg" id="dbStatusSeg" title="Status">
+                          <button class="active" data-status="all">All</button>
+                          <button data-status="collab">Collab</button>
+                          <button data-status="wanted">Wanted</button>
+                        </div>
+                      </div>
+
+                      <div style="height:8px"></div>
+
+                      <div class="dbListScroll">
+                        <table class="dbTable">
+                          <thead>
+                            <tr>
+                              <th style="width:72%;">
+                                <div class="thToggle">
+                                  <span>Name</span>
+                                  <button class="miniBtn active" id="nameSortBtn" title="Toggle A→Z / Z→A">A→Z</button>
+                                </div>
+                              </th>
+                              <th style="width:28%; text-align:right;">
+                                <div class="thToggle" style="justify-content:flex-end;">
+                                  <button class="miniBtn active" id="repSortBtn" title="Toggle REP ↓ / REP ↑">REP↓</button>
+                                  <span>Rep</span>
+                                </div>
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody id="dbTbody"></tbody>
+                        </table>
+                      </div>
+
+                      <!-- ADD ENTRY bottom-left -->
+                      <div style="display:flex; justify-content:flex-start; margin-top:6px;">
+                        <button class="glossBtn bigAction" id="dbAddBtn">+ ADD ENTRY</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right -->
+                  <div class="panel" style="min-height:0; display:flex; flex-direction:column; gap:10px;">
+                    <div class="panelTitle">
+                      <span>Selected</span>
+                      <span id="dbSelectedId" class="tagId">NONE</span>
+                    </div>
+
+                    <div class="profileGrid">
+                      <div class="panel">
+                        <div class="panelTitle"><span>Name</span></div>
+                        <input class="field" id="pName" placeholder="Name (callsign optional)" />
+                      </div>
+
+                      <div class="panel">
+                        <div class="panelTitle"><span>Status</span></div>
+                        <div class="seg" id="pStatusSeg">
+                          <button class="active" data-v="Collaborator">Collab</button>
+                          <button data-v="Wanted">Wanted</button>
+                        </div>
+                      </div>
+
+                      <div class="panel">
+                        <div class="panelTitle"><span>Task</span></div>
+                        <input class="field" id="pTask" placeholder="Task / role / assignment" />
+                      </div>
+
+                      <div class="panel">
+                        <div class="panelTitle"><span>Reputation</span></div>
+                        <div class="repControl">
+                          <input class="repValue" id="pRep" value="0" readonly />
+                          <div class="repBtns">
+                            <button class="repBtn" id="repUp">▲</button>
+                            <button class="repBtn" id="repDn">▼</button>
+                          </div>
+                          <div class="repScore repGrey" id="repScorePreview">0</div>
+                        </div>
+                      </div>
+
+                      <div class="panel profileFull">
+                        <div class="panelTitle"><span>Notes</span></div>
+                        <textarea class="field" id="pNotes" placeholder="Shared notes. Factual + short."></textarea>
+                      </div>
+                    </div>
+
+                    <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">
+                      <button class="glossBtn" id="dbDeleteBtn">Delete</button>
+                      <button class="glossBtn primary" id="dbSaveBtn">Save</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- NOTES -->
+            <div class="appWindow" id="appNotes">
+              <div class="appTop">
+                <div>NOTES <span class="sub">shared capture</span></div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <button class="glossBtn primary" id="noteSendBtn">Save to Desktop</button>
+                  <button class="glossBtn closeBtn" data-close>Close</button>
+                </div>
+              </div>
+              <div class="appBody">
+                <div class="panel">
+                  <div class="panelTitle"><span>New Note</span><span>Desktop inbox</span></div>
+                  <input class="field" id="noteTitle" placeholder="Title" />
+                  <div style="height:8px"></div>
+                  <textarea class="field" id="noteBody" placeholder="Write the note..."></textarea>
+                </div>
+
+                <div style="height:10px"></div>
+
+                <div class="panel">
+                  <div class="panelTitle"><span>Recent</span><span id="noteCount">0</span></div>
+                  <div id="noteList"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TRADE -->
+            <div class="appWindow" id="appTrade">
+              <div class="appTop">
+                <div>TRADE <span class="sub">prices + receipts</span></div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <button class="glossBtn closeBtn" data-close>Close</button>
+                </div>
+              </div>
+
+              <div class="appBody">
+                <div class="tradeLayout">
+                  <!-- left -->
+                  <div class="panel" style="min-height:0; display:flex; flex-direction:column;">
+                    <div class="panelTitle">
+                      <span>Price List</span>
+                      <span id="tradeUpdated" style="font-family:var(--mono);">UPDATED: --</span>
+                    </div>
+
+                    <div class="tradeHeaderRow">
+                      <div class="seg" id="tradeModeSeg" title="Mode">
+                        <button class="active" data-mode="buy">BUY</button>
+                        <button data-mode="sell">SELL</button>
+                      </div>
+
+                      <div class="modeBanner" id="modeBanner">
+                        <b>BUYING FROM</b> stalker (we pay them)
+                      </div>
+
+                      <input class="field" id="tradeSearch" placeholder="Search item / category" style="flex:1; min-width:220px;" />
+                      <button class="glossBtn" id="tradeClearQtyBtn">Clear</button>
+                    </div>
+
+                    <div style="flex:1; min-height:0; overflow:auto; border:1px solid rgba(88,199,255,0.10); background:rgba(0,0,0,0.18); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.85);">
+                      <table class="tradeTable">
+                        <thead>
+                          <tr>
+                            <th style="width:16%;">Cat</th>
+                            <th>Item</th>
+                            <th style="width:12%;">Price</th>
+                            <th style="width:18%;">Qty</th>
+                            <th style="width:10%;">Avail</th>
+                            <th style="width:8%;">Del</th>
+                          </tr>
+                        </thead>
+                        <tbody id="tradeTbody"></tbody>
+                      </table>
+                    </div>
+
+                    <!-- ADD ITEM bottom-left -->
+                    <div style="margin-top:6px; display:flex; justify-content:flex-start;">
+                      <button class="glossBtn bigAction" id="tradeAddItemBtn">+ ADD ITEM</button>
+                    </div>
+                  </div>
+
+                  <!-- right -->
+                  <div class="panel" style="display:flex; flex-direction:column; gap:10px;">
+                    <div class="panelTitle">
+                      <span>Receipt</span>
+                      <span id="receiptTotalTag" style="font-family:var(--mono);">TOTAL: 0</span>
+                    </div>
+
+                    <!-- Discount row -->
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:4px;">
+                      <span style="font-size:10px; letter-spacing:.12em; text-transform:uppercase;">Discount (SELL):</span>
+                      <input class="field field-sm" id="discountInput" placeholder="% e.g. 10" style="width:80px; max-width:120px;" disabled />
+                      <span style="font-size:10px; color:var(--lab-muted);">Only applied when selling to stalker</span>
+                    </div>
+
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                      <input class="field" id="receiptParty" list="partyList" placeholder="Counterparty (type name, pick from DB)" style="flex:1; min-width:220px;" />
+                      <datalist id="partyList"></datalist>
+
+                      <button class="glossBtn primary" id="tradeGenerateBtn">Generate</button>
+                      <button class="glossBtn closeBtn" id="tradeSendReceiptBtn">Upload</button>
+                    </div>
+
+                    <div id="receiptHint"></div>
+
+                    <div class="panel" style="padding:10px; background:rgba(0,0,0,0.25); border:1px solid rgba(88,199,255,0.14);">
+                      <div id="receiptBox" style="font-family:var(--mono); font-size:11px; white-space:pre-wrap; color:var(--lab-text); min-height:210px;">
+                        No receipt generated.
+                      </div>
+                    </div>
+
+                    <div style="font-size:10px; color:var(--lab-muted);">
+                      Stored on <b>Desktop → Receipts</b>.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SETTINGS -->
+            <div class="appWindow" id="appSettings">
+              <div class="appTop">
+                <div>SETTINGS <span class="sub">prototype</span></div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <button class="glossBtn closeBtn" data-close>Close</button>
+                </div>
+              </div>
+
+              <div class="appBody">
+                <div class="panel">
+                  <div class="panelTitle"><span>Access Level</span><span>mock</span></div>
+                  <div class="seg" id="accessSeg">
+                    <button data-role="user" class="active">User</button>
+                    <button data-role="admin">Admin</button>
+                  </div>
+                </div>
+
+                <div style="height:10px"></div>
+
+                <div class="panel">
+                  <div class="panelTitle"><span>Boot</span><span>preview</span></div>
+                  <button class="glossBtn" id="settingsBootBtn">Re-run Boot</button>
+                </div>
+
+                <div style="height:10px"></div>
+
+                <div class="panel">
+                  <div class="panelTitle"><span>Rules</span><span>shared</span></div>
+                  <div style="font-size:12px; line-height:1.45; color:var(--lab-text);">
+                    • Notes are shared (no private notes).<br/>
+                    • Database: users can add / edit; delete is admin-only.<br/>
+                    • Trade items: <b>Admins</b> can add / toggle availability / remove.<br/>
+                    • Items may be <b>buy-only</b>, <b>sell-only</b> or both (based on prices).<br/>
+                    • Receipts are stored on <b>Desktop → Receipts</b>.<br/>
+                    • SELL discount only applies in SELL mode and is annotated on receipts.<br/>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FOOTER -->
+          <div class="actionBar">
+            <div>STATUS: <b id="pdaStatus">READY</b></div>
+            <div>ACCESS: <b id="pdaAccess">USER</b></div>
+            <div>UPLINK: <b id="uplinkStatus">LOCAL</b></div>
+          </div>
+
+          <div class="screen-vignette"></div>
+          <div class="screen-noise"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESKTOP -->
+    <div class="desktop" id="desktop">
+      <div class="deskIcons">
+        <div class="icon" data-open="reports"><div class="iconBox"></div><div>Reports</div></div>
+        <div class="icon" data-open="receipts"><div class="iconBox"></div><div>Receipts</div></div>
+        <div class="icon" data-open="intel"><div class="iconBox"></div><div>Intel (Encyclopaedia)</div></div>
+        <div class="icon" data-open="personnel"><div class="iconBox"></div><div>Personnel</div></div>
+      </div>
+
+      <div id="windows"></div>
+
+      <div class="taskbar">
+        <div class="startBtn"><div class="startFlag"></div>Start</div>
+        <div class="taskBtns" id="taskBtns"></div>
+        <div class="clock" id="deskClock">--:--</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      "use strict";
+
+      const UPLINK_URL = "https://script.google.com/macros/s/AKfycbxLdqPF_leR-hvp2Q-OdnPiCzAmqlDlMfcE9QQ6BIgsUA3KbHm_nhgakxQ8V-s6gkVY/exec";
+
+      function $(sel){ return document.querySelector(sel); }
+      function $all(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+      function pad2(n){ n = parseInt(n,10); if(isNaN(n)) n=0; return (n<10?"0":"")+n; }
+
+      function escapeHtml(s){
+        if(s == null) return "";
+        return String(s).replace(/[&<>"']/g, function(m){
+          return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m];
+        });
+      }
+
+      var state = {
+        mode: "pda",
+        role: "user",
+
+        stalkers: [
+          { id:"STK-0318", name:"S. Pavlov", status:"Collaborator", task:"Escort to Yantar", rep:900, notes:"Reliable escort. Clear comms." },
+          { id:"STK-0441", name:"Alias: Dust", status:"Wanted",      task:"",               rep:-200, notes:"Unpredictable. Avoid lone contact." },
+          { id:"STK-0102", name:"Kedr",        status:"Collaborator", task:"Courier run",    rep:120,  notes:"Paid informant. Limited reliability." },
+          { id:"STK-0227", name:"Margo",       status:"Collaborator", task:"Sample handoff", rep:560,  notes:"Trade-friendly. No drama." }
+        ],
+        selectedStalkerId: null,
+        dbStatusFilter: "all",
+        primarySort: "rep",
+        nameSortAsc: true,
+        repSortDesc: true,
+
+        tradeMode: "buy",
+        trade: [
+          { id:"TRD-0001", cat:"Medical",   item:"Bandage",          buy:140,  sell:70,   enabled:true,  canBuy:true,  canSell:true  },
+          { id:"TRD-0002", cat:"Medical",   item:"Medkit (Army)",    buy:1100, sell:600,  enabled:true,  canBuy:true,  canSell:true  },
+          { id:"TRD-0003", cat:"Ammo",      item:"5.45x39 (30)",     buy:480,  sell:240,  enabled:true,  canBuy:true,  canSell:true  },
+          { id:"TRD-0004", cat:"Equipment", item:"Radiation pills",  buy:320,  sell:160,  enabled:true,  canBuy:true,  canSell:true  },
+          { id:"TRD-0005", cat:"Samples",   item:"Soil vial",        buy:120,  sell:null, enabled:true,  canBuy:true,  canSell:false },
+          { id:"TRD-0006", cat:"Artifacts", item:"Jellyfish",        buy:2800, sell:null, enabled:true,  canBuy:true,  canSell:false }
+        ],
+        tradeQty: {},
+        tradeAddDraft: null,
+
+        notesQueue: [],
+        receiptsQueue: [],
+        lastReceipt: null,
+        receiptSerial: 1,
+
+        winZ: 10,
+        desktopWins: {},
+        desktopTasks: {}
+      };
+
+      function repClass(rep){
+        if(rep < 0) return "repNeg";
+        if(rep >= 800) return "repGrn";
+        if(rep >= 500) return "repYel";
+        return "repGrey";
+      }
+      function repRowBg(rep){
+        if(rep < 0) return "rgba(255,107,107,0.12)";
+        if(rep >= 800) return "rgba(103,226,138,0.12)";
+        if(rep >= 500) return "rgba(255,215,122,0.12)";
+        return "rgba(185,198,207,0.08)";
+      }
+
+      function nowClock(){
+        var d = new Date();
+        return pad2(d.getHours())+":"+pad2(d.getMinutes())+":"+pad2(d.getSeconds());
+      }
+      function stamp(){
+        var d = new Date();
+        return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate())+" "+pad2(d.getHours())+":"+pad2(d.getMinutes())+":"+pad2(d.getSeconds());
+      }
+
+      function setMode(mode){
+        state.mode = mode;
+        $("#pdaWrap").style.display = (mode === "pda") ? "block" : "none";
+        $("#desktop").style.display = (mode === "desktop") ? "block" : "none";
+        $("#btnPDA").classList.toggle("primary", mode === "pda");
+        $("#btnDESK").classList.toggle("primary", mode === "desktop");
+      }
+
+      function setRole(role){
+        state.role = role;
+        var tag = $("#accessTag");
+        tag.textContent = "ACCESS: " + role.toUpperCase();
+        tag.classList.remove("admin","user");
+        tag.classList.add(role === "admin" ? "admin" : "user");
+        $("#pdaAccess").textContent = role.toUpperCase();
+
+        $("#tradeAddItemBtn").style.display = (role === "admin") ? "inline-flex" : "none";
+        $("#dbDeleteBtn").style.display = (role === "admin") ? "inline-flex" : "none";
+
+        renderTrade();
+      }
+
+      function updateBadges(){
+        $("#queueBadge").textContent   = "NOTES: "    + state.notesQueue.length;
+        $("#receiptBadge").textContent = "RECEIPTS: " + state.receiptsQueue.length;
+      }
+
+      function closeAllApps(){
+        $all(".appWindow").forEach(function(w){ w.style.display = "none"; });
+      }
+      function openApp(id){
+        closeAllApps();
+        var w = $("#"+id);
+        if(w){ w.style.display = "flex"; }
+        $("#pdaStatus").textContent = "IN APP";
+      }
+
+      function runBoot(){
+        var cover  = $("#bootCover");
+        var log    = $("#bootLog");
+        var fill   = $("#biosFill");
+        var status = $("#biosStatus");
+        if(!cover || !log || !fill || !status) return;
+
+        $("#pdaStatus").textContent = "BOOT";
+        closeAllApps();
+
+        cover.style.display = "flex";
+        log.textContent = "";
+        fill.style.width = "0%";
+        status.textContent = "INITIALIZING...";
+
+        var lines = [
+          "ECO FIELD PDA v0.7",
+          "--------------------------------",
+          "INIT DISPLAY BUS .......... [OK]",
+          "LOAD UI SHELL ............. [OK]",
+          "MOUNT SHARED REGISTRY ..... [OK]",
+          "MOUNT NOTES QUEUE ......... [OK]",
+          "MOUNT RECEIPT LEDGER ...... [OK]",
+          "LINK DESKTOP .............. [OK]",
+          "",
+          "READY"
+        ];
+        var i = 0;
+        function stepLines(){
+          if(i < lines.length){
+            log.textContent += lines[i] + "\n";
+            i++;
+            setTimeout(stepLines, 55);
+          }else{
+            var p = 0;
+            function stepBar(){
+              if(p >= 100){
+                setTimeout(function(){
+                  cover.style.display = "none";
+                  $("#pdaStatus").textContent = "READY";
+                }, 100);
+                return;
+              }
+              p += 10 + Math.floor(Math.random()*15);
+              if(p > 100) p = 100;
+              fill.style.width = p + "%";
+              if(p < 40) status.textContent = "LOADING MODULES...";
+              else if(p < 80) status.textContent = "LINKING SERVICES...";
+              else status.textContent = "FINALIZING...";
+              setTimeout(stepBar, 70);
+            }
+            stepBar();
+          }
+        }
+        stepLines();
+      }
+
+      function nextStkId(){
+        var max = 0;
+        for(var i=0;i<state.stalkers.length;i++){
+          var id = state.stalkers[i].id || "";
+          var n = parseInt(id.replace("STK-",""),10);
+          if(!isNaN(n) && n>max) max=n;
+        }
+        var next = max+1;
+        var num = String(next);
+        while(num.length<4) num="0"+num;
+        return "STK-"+num;
+      }
+      function nextTradeId(){
+        var max = 0;
+        for(var i=0;i<state.trade.length;i++){
+          var id = state.trade[i].id || "";
+          var n = parseInt(id.replace("TRD-",""),10);
+          if(!isNaN(n) && n>max) max=n;
+        }
+        var next = max+1;
+        var num = String(next);
+        while(num.length<4) num="0"+num;
+        return "TRD-"+num;
+      }
+
+      function rebuildPartyList(){
+        var dl = $("#partyList");
+        if(!dl) return;
+        dl.innerHTML = "";
+        var names = [];
+        for(var i=0;i<state.stalkers.length;i++){
+          var n = (state.stalkers[i].name || "").trim();
+          if(n && names.indexOf(n) === -1) names.push(n);
+        }
+        names.sort();
+        for(i=0;i<names.length;i++){
+          var opt = document.createElement("option");
+          opt.value = names[i];
+          dl.appendChild(opt);
+        }
+      }
+
+      function sortStalkers(arr){
+        var list = arr.slice();
+        var primary = state.primarySort === "name" ? "name" : "rep";
+
+        list.sort(function(a,b){
+          if(primary === "name"){
+            var an = (a.name||"").toLowerCase();
+            var bn = (b.name||"").toLowerCase();
+            if(an < bn) return state.nameSortAsc ? -1 : 1;
+            if(an > bn) return state.nameSortAsc ? 1 : -1;
+            var ar = a.rep||0, br = b.rep||0;
+            return br-ar;
+          }else{
+            var ar2 = a.rep||0, br2 = b.rep||0;
+            if(ar2 < br2) return state.repSortDesc ? 1 : -1;
+            if(ar2 > br2) return state.repSortDesc ? -1 : 1;
+            var an2 = (a.name||"").toLowerCase();
+            var bn2 = (b.name||"").toLowerCase();
+            if(an2 < bn2) return -1;
+            if(an2 > bn2) return 1;
+            return 0;
+          }
+        });
+        return list;
+      }
+
+      function renderDbList(){
+        var q = ($("#dbSearch").value || "").toLowerCase();
+        var filter = state.dbStatusFilter;
+
+        var items = [];
+        for(var i=0;i<state.stalkers.length;i++){
+          var s = state.stalkers[i];
+          var hay = (s.id+" "+s.name+" "+s.task+" "+s.notes).toLowerCase();
+          var okQ = !q || hay.indexOf(q) !== -1;
+          var okF = true;
+          if(filter === "collab") okF = (s.status === "Collaborator");
+          else if(filter === "wanted") okF = (s.status === "Wanted");
+          if(okQ && okF) items.push(s);
+        }
+
+        items = sortStalkers(items);
+
+        $("#dbCount").textContent = items.length + " REC";
+
+        var tb = $("#dbTbody");
+        tb.innerHTML = "";
+        if(items.length === 0){
+          tb.innerHTML = '<tr><td colspan="2" style="padding:10px; color:var(--lab-muted);">No matches.</td></tr>';
+          return;
+        }
+
+        for(i=0;i<items.length;i++){
+          var s2 = items[i];
+          var tr = document.createElement("tr");
+          tr.className = "dbRow" + (s2.id === state.selectedStalkerId ? " selected" : "");
+          tr.style.background = repRowBg(s2.rep || 0);
+
+          var nameClass = (s2.status === "Wanted") ? 'wantedName' : '';
+
+          tr.innerHTML =
+            '<td>' +
+              '<div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">' +
+                '<div style="min-width:0;">' +
+                  '<div style="font-weight:700; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' +
+                    '<span class="'+nameClass+'">'+escapeHtml(s2.name || "(unnamed)")+'</span>' +
+                  '</div>' +
+                  '<div style="font-size:10px; color:var(--lab-muted); font-family:var(--mono); letter-spacing:.05em; margin-top:3px;">' +
+                    '<span class="tagId">'+escapeHtml(s2.id)+'</span>' +
+                    '<span style="margin-left:8px;">'+escapeHtml(s2.status)+'</span>' +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+            '</td>' +
+            '<td style="text-align:right;">' +
+              '<div class="repScore '+repClass(s2.rep||0)+'">'+escapeHtml(s2.rep||0)+'</div>' +
+            '</td>';
+
+          (function(id){
+            tr.addEventListener("click", function(){
+              state.selectedStalkerId = id;
+              renderDbList();
+              loadProfile(id);
+            });
+          })(s2.id);
+
+          tb.appendChild(tr);
+        }
+      }
+
+      function setSegActive(segEl, value, attrName){
+        var btns = segEl ? segEl.querySelectorAll("button") : [];
+        btns = Array.prototype.slice.call(btns);
+        for(var i=0;i<btns.length;i++){
+          var v = btns[i].getAttribute(attrName);
+          btns[i].classList.toggle("active", v === value);
+        }
+      }
+
+      function loadProfile(id){
+        var s = null;
+        for(var i=0;i<state.stalkers.length;i++){
+          if(state.stalkers[i].id === id){ s = state.stalkers[i]; break; }
+        }
+        if(!s){
+          $("#dbSelectedId").textContent = "NONE";
+          $("#pName").value = "";
+          $("#pTask").value = "";
+          $("#pNotes").value = "";
+          $("#pRep").value = "0";
+          $("#repScorePreview").textContent = "0";
+          $("#repScorePreview").className = "repScore repGrey";
+          setSegActive($("#pStatusSeg"), "Collaborator", "data-v");
+          return;
+        }
+
+        $("#dbSelectedId").textContent = s.id;
+        $("#pName").value  = s.name || "";
+        $("#pTask").value  = s.task || "";
+        $("#pNotes").value = s.notes || "";
+        $("#pRep").value   = String(s.rep || 0);
+        var pv = $("#repScorePreview");
+        pv.textContent = String(s.rep || 0);
+        pv.className = "repScore " + repClass(s.rep || 0);
+
+        setSegActive($("#pStatusSeg"), s.status || "Collaborator", "data-v");
+        rebuildPartyList();
+      }
+
+      function dbAddEntry(){
+        var id = nextStkId();
+        var entry = { id:id, name:"", status:"Collaborator", task:"", rep:0, notes:"" };
+        state.stalkers.unshift(entry);
+        state.selectedStalkerId = id;
+        renderDbList();
+        loadProfile(id);
+      }
+
+      function dbSave(){
+        if(!state.selectedStalkerId){
+          alert("Select an entry first.");
+          return;
+        }
+        var s = null;
+        for(var i=0;i<state.stalkers.length;i++){
+          if(state.stalkers[i].id === state.selectedStalkerId){ s = state.stalkers[i]; break; }
+        }
+        if(!s) return;
+
+        s.name  = ($("#pName").value || "").trim();
+        s.task  = ($("#pTask").value || "").trim();
+        s.notes = ($("#pNotes").value || "").trim();
+        s.rep   = parseInt($("#pRep").value || "0",10) || 0;
+
+        var statusBtn = $("#pStatusSeg button.active");
+        if(statusBtn) s.status = statusBtn.getAttribute("data-v") || "Collaborator";
+
+        var pv = $("#repScorePreview");
+        pv.textContent = String(s.rep);
+        pv.className = "repScore " + repClass(s.rep || 0);
+
+        rebuildPartyList();
+        renderDbList();
+        $("#pdaStatus").textContent = "SAVED";
+        setTimeout(function(){ $("#pdaStatus").textContent="READY"; }, 600);
+
+        syncToServer();
+      }
+
+      function dbDelete(){
+        if(state.role !== "admin"){
+          alert("ADMIN ONLY: deleting entries.");
+          return;
+        }
+        if(!state.selectedStalkerId) return;
+        var s = null;
+        for(var i=0;i<state.stalkers.length;i++){
+          if(state.stalkers[i].id === state.selectedStalkerId){ s = state.stalkers[i]; break; }
+        }
+        if(!s) return;
+        if(!confirm("Delete "+s.id+"?")) return;
+
+        var out = [];
+        for(i=0;i<state.stalkers.length;i++){
+          if(state.stalkers[i].id !== s.id) out.push(state.stalkers[i]);
+        }
+        state.stalkers = out;
+        state.selectedStalkerId = null;
+        rebuildPartyList();
+        renderDbList();
+        loadProfile(null);
+
+        syncToServer();
+      }
+
+      function renderNotes(){
+        var list = $("#noteList");
+        $("#noteCount").textContent = state.notesQueue.length+" REC";
+        list.innerHTML = "";
+        if(state.notesQueue.length === 0){
+          list.innerHTML = '<div style="padding:8px; color:var(--lab-muted); font-size:12px;">No notes yet.</div>';
+          return;
+        }
+        var slice = state.notesQueue.slice(-10).reverse();
+        for(var i=0;i<slice.length;i++){
+          var n = slice[i];
+          var div = document.createElement("div");
+          div.className = "panel";
+          div.style.marginBottom = "8px";
+          div.innerHTML =
+            '<div class="panelTitle"><span>'+escapeHtml(n.title || "NOTE")+'</span><span>'+escapeHtml(n.time)+'</span></div>'+
+            '<div style="font-size:12px; color:var(--lab-text); white-space:pre-wrap;">'+escapeHtml(n.body || "")+'</div>';
+          list.appendChild(div);
+        }
+      }
+
+      function sendNoteToDesktop(){
+        var title = ($("#noteTitle").value || "").trim();
+        var body  = ($("#noteBody").value || "").trim();
+        if(!body){
+          alert("Write a note first.");
+          return;
+        }
+        state.notesQueue.push({
+          kind:"note",
+          time: stamp(),
+          title: title || "Field Note",
+          body: body
+        });
+        $("#noteTitle").value = "";
+        $("#noteBody").value  = "";
+        updateBadges();
+        renderNotes();
+        $("#pdaStatus").textContent="QUEUED";
+        setTimeout(function(){ $("#pdaStatus").textContent="READY"; }, 600);
+
+        syncToServer();
+      }
+
+      function supportsMode(item, mode){
+        if(mode === "buy")  return item.enabled && item.canBuy && item.buy != null && !isNaN(item.buy);
+        if(mode === "sell") return item.enabled && item.canSell && item.sell != null && !isNaN(item.sell);
+        return true;
+      }
+
+      function setTradeMode(mode){
+        state.tradeMode = mode;
+        $all("#tradeModeSeg button").forEach(function(b){
+          b.classList.toggle("active", b.getAttribute("data-mode") === mode);
+        });
+        $("#modeBanner").innerHTML =
+          (mode === "buy")
+          ? "<b>BUYING FROM</b> stalker (we pay them)"
+          : "<b>SELLING TO</b> stalker (they pay us)";
+
+        var discFld = $("#discountInput");
+        if(discFld){
+          if(mode === "sell"){
+            discFld.removeAttribute("disabled");
+          }else{
+            discFld.setAttribute("disabled","disabled");
+          }
+        }
+
+        renderTrade();
+        $("#receiptHint").textContent = "";
+      }
+
+      function renderTrade(){
+        $("#tradeUpdated").textContent = "UPDATED: "+(new Date().toLocaleDateString());
+        var q = ($("#tradeSearch").value || "").toLowerCase();
+        var tbody = $("#tradeTbody");
+        tbody.innerHTML = "";
+
+        var items = [];
+        for(var i=0;i<state.trade.length;i++){
+          var t = state.trade[i];
+          var hay = (t.cat+" "+t.item).toLowerCase();
+          if(!q || hay.indexOf(q) !== -1) items.push(t);
+        }
+
+        if(items.length === 0 && !state.tradeAddDraft){
+          tbody.innerHTML = '<tr><td colspan="6" style="padding:10px; color:var(--lab-muted);">No matches.</td></tr>';
+        }
+
+        var mode = state.tradeMode;
+
+        for(i=0;i<items.length;i++){
+          var it = items[i];
+          var qtyVal = state.tradeQty[it.id] || 0;
+          var usable = supportsMode(it, mode);
+          var price = (mode === "buy" ? it.buy : it.sell);
+          var priceText = (usable ? escapeHtml(price) : "—");
+
+          var rowClass = "tradeRow" + (usable ? "" : " disabledItem");
+
+          var delCell;
+          if(state.role === "admin"){
+            delCell = '<button class="glossBtn" style="padding:5px 8px; letter-spacing:.08em;" data-act="remove" data-id="'+it.id+'">DEL</button>';
+          }else{
+            delCell = '<span style="color:var(--lab-muted); font-family:var(--mono);">—</span>';
+          }
+
+          var availCell;
+          if(state.role === "admin"){
+            availCell = '<input class="availChk" type="checkbox" data-act="toggle" data-id="'+it.id+'" '+(it.enabled ? "checked":"")+' />';
+          }else{
+            availCell = '<input class="availChk" type="checkbox" '+(it.enabled ? "checked":"")+' disabled />';
+          }
+
+          var qtyDisabled = usable ? "" : "disabled";
+
+          var tr = document.createElement("tr");
+          tr.className = rowClass;
+          tr.innerHTML =
+            '<td>'+escapeHtml(it.cat)+'</td>'+
+            '<td><b>'+escapeHtml(it.item)+'</b><div style="font-size:10px;color:var(--lab-muted);font-family:var(--mono); letter-spacing:.05em;">'+escapeHtml(it.id)+'</div></td>'+
+            '<td>'+priceText+'</td>'+
+            '<td><div class="qtyPill">'+
+              '<button data-act="dec" data-id="'+it.id+'" '+qtyDisabled+'>-</button>'+
+              '<span id="qty-'+it.id+'">'+qtyVal+'</span>'+
+              '<button data-act="inc" data-id="'+it.id+'" '+qtyDisabled+'>+</button>'+
+            '</div></td>'+
+            '<td style="text-align:center;">'+availCell+'</td>'+
+            '<td>'+delCell+'</td>';
+          tbody.appendChild(tr);
+        }
+
+        // inline add-row for admin (only after +Add pressed)
+        if(state.role === "admin" && state.tradeAddDraft){
+          var draft = state.tradeAddDraft;
+          var trDraft = document.createElement("tr");
+          trDraft.className = "tradeRow";
+          var cats = [];
+          for(i=0;i<state.trade.length;i++){
+            var c = state.trade[i].cat;
+            if(c && cats.indexOf(c) === -1) cats.push(c);
+          }
+          cats.sort();
+          var opts = '<option value="">Category…</option>';
+          for(i=0;i<cats.length;i++){
+            opts += '<option value="'+escapeHtml(cats[i])+'">'+escapeHtml(cats[i])+'</option>';
+          }
+
+          trDraft.innerHTML =
+            '<td>'+
+              '<select class="field field-sm" data-field="catSelect">'+opts+'</select>'+
+              '<input class="field field-sm" data-field="catCustom" placeholder="Custom category (optional)" style="margin-top:4px;" />'+
+            '</td>'+
+            '<td><input class="field field-sm" data-field="item" placeholder="Item name" /></td>'+
+            '<td>'+
+              '<div style="display:flex; flex-direction:column; gap:4px;">'+
+                '<input class="field field-sm" data-field="buy"  placeholder="Buy ₽" />'+
+                '<input class="field field-sm" data-field="sell" placeholder="Sell ₽" />'+
+              '</div>'+
+            '</td>'+
+            '<td style="text-align:center; font-size:11px; color:var(--lab-muted);">—</td>'+
+            '<td style="text-align:center;"><input class="availChk" type="checkbox" data-field="enabled" checked /></td>'+
+            '<td>'+
+              '<div style="display:flex; flex-direction:column; gap:4px;">'+
+                '<button class="glossBtn" style="padding:4px 6px; font-size:10px;" data-act="draft-save">Save</button>'+
+                '<button class="glossBtn" style="padding:4px 6px; font-size:10px;" data-act="draft-cancel">Cancel</button>'+
+              '</div>'+
+            '</td>';
+
+          tbody.appendChild(trDraft);
+
+          var catSel    = trDraft.querySelector('[data-field="catSelect"]');
+          var catCustom = trDraft.querySelector('[data-field="catCustom"]');
+          var itemInp   = trDraft.querySelector('[data-field="item"]');
+          var buyInp    = trDraft.querySelector('[data-field="buy"]');
+          var sellInp   = trDraft.querySelector('[data-field="sell"]');
+          var enChk     = trDraft.querySelector('[data-field="enabled"]');
+
+          trDraft.querySelector('[data-act="draft-save"]').onclick = function(){
+            var cat = (catCustom.value || "").trim() || (catSel.value || "").trim();
+            var item = (itemInp.value || "").trim();
+            if(!cat || !item){
+              alert("Category and item name are required.");
+              return;
+            }
+            var buyVal  = buyInp.value.trim();
+            var sellVal = sellInp.value.trim();
+
+            var buy = null, sell = null;
+            if(buyVal !== ""){
+              buy = parseInt(buyVal,10);
+              if(isNaN(buy)){ alert("Invalid buy price."); return; }
+            }
+            if(sellVal !== ""){
+              sell = parseInt(sellVal,10);
+              if(isNaN(sell)){ alert("Invalid sell price."); return; }
+            }
+            if(buy === null && sell === null){
+              alert("Set at least a buy or sell price.");
+              return;
+            }
+            if(buy !== null && sell !== null && !(buy > sell)){
+              alert("Rule: buy price must be greater than sell price when both are set.");
+              return;
+            }
+            var canBuy  = (buy !== null);
+            var canSell = (sell !== null);
+
+            state.trade.push({
+              id: draft.id,
+              cat: cat,
+              item: item,
+              buy: buy,
+              sell: sell,
+              enabled: enChk.checked,
+              canBuy: canBuy,
+              canSell: canSell
+            });
+            state.tradeAddDraft = null;
+            renderTrade();
+
+            syncToServer();
+          };
+
+          trDraft.querySelector('[data-act="draft-cancel"]').onclick = function(){
+            state.tradeAddDraft = null;
+            renderTrade();
+          };
+        }
+
+        // wire row controls
+        $all("#tradeTbody [data-act]").forEach(function(el){
+          var act = el.getAttribute("data-act");
+          var id  = el.getAttribute("data-id");
+
+          el.onclick = function(){
+            if(act === "inc" || act === "dec"){
+              var item = null;
+              for(var i=0;i<state.trade.length;i++){
+                if(state.trade[i].id === id){ item = state.trade[i]; break; }
+              }
+              if(!item || !supportsMode(item,state.tradeMode)) return;
+              var cur = state.tradeQty[id] || 0;
+              var next = (act === "inc") ? cur+1 : Math.max(0,cur-1);
+              state.tradeQty[id] = next;
+              var span = $("#qty-"+id);
+              if(span) span.textContent = String(next);
+              return;
+            }
+            if(act === "remove"){
+              if(state.role !== "admin"){
+                alert("ADMIN ONLY.");
+                return;
+              }
+              var item2 = null;
+              for(var j=0;j<state.trade.length;j++){
+                if(state.trade[j].id === id){ item2 = state.trade[j]; break; }
+              }
+              if(!item2) return;
+              if(!confirm("Remove "+item2.item+" from trade menu?")) return;
+              delete state.tradeQty[id];
+              var out = [];
+              for(j=0;j<state.trade.length;j++){
+                if(state.trade[j].id !== id) out.push(state.trade[j]);
+              }
+              state.trade = out;
+              renderTrade();
+
+              syncToServer();
+              return;
+            }
+          };
+        });
+
+        $all('#tradeTbody input[type="checkbox"][data-act="toggle"]').forEach(function(chk){
+          chk.onchange = function(){
+            if(state.role !== "admin"){
+              chk.checked = !chk.checked;
+              return;
+            }
+            var id = chk.getAttribute("data-id");
+            var item = null;
+            for(var i=0;i<state.trade.length;i++){
+              if(state.trade[i].id === id){ item = state.trade[i]; break; }
+            }
+            if(!item) return;
+            item.enabled = chk.checked;
+            if(!item.enabled) state.tradeQty[id] = 0;
+            renderTrade();
+
+            syncToServer();
+          };
+        });
+      }
+
+      function clearTradeQty(){
+        state.tradeQty = {};
+        $("#receiptBox").textContent = "No receipt generated.";
+        $("#receiptTotalTag").textContent = "TOTAL: 0";
+        $("#receiptHint").textContent = "";
+        state.lastReceipt = null;
+        renderTrade();
+      }
+
+      function startTradeAddRow(){
+        if(state.role !== "admin"){
+          alert("ADMIN ONLY: adding trade items.");
+          return;
+        }
+        if(state.tradeAddDraft) return;
+        state.tradeAddDraft = { id: nextTradeId() };
+        renderTrade();
+      }
+
+      function generateReceipt(){
+        var mode  = state.tradeMode;
+        var party = ($("#receiptParty").value || "").trim();
+        if(!party){
+          alert("Add a counterparty (pick from the list).");
+          return null;
+        }
+
+        var entries = [];
+        for(var id in state.tradeQty){
+          if(state.tradeQty.hasOwnProperty(id)){
+            var q = state.tradeQty[id] || 0;
+            if(q > 0) entries.push({id:id, qty:q});
+          }
+        }
+        if(entries.length === 0){
+          alert("Select at least one item and quantity.");
+          return null;
+        }
+
+        var discount = 0;
+        if(mode === "sell"){
+          var raw = $("#discountInput").value || "0";
+          var d = parseInt(raw,10);
+          if(!isNaN(d) && d > 0) discount = Math.min(d,90);
+        }
+
+        var baseTotal = 0;
+        var total = 0;
+        var lines = [];
+        for(var i=0;i<entries.length;i++){
+          var ent = entries[i];
+          var item = null;
+          for(var j=0;j<state.trade.length;j++){
+            if(state.trade[j].id === ent.id){ item = state.trade[j]; break; }
+          }
+          if(!item || !supportsMode(item,mode)) continue;
+          var priceBase = (mode === "buy" ? item.buy : item.sell);
+          if(priceBase == null || isNaN(priceBase)) continue;
+
+          var priceApplied = priceBase;
+          if(mode === "sell" && discount > 0){
+            priceApplied = Math.round(priceBase * (100 - discount) / 100);
+          }
+
+          var subBase = priceBase * ent.qty;
+          var sub     = priceApplied * ent.qty;
+          baseTotal += subBase;
+          total     += sub;
+
+          if(mode === "sell" && discount > 0){
+            lines.push(item.item);
+            lines.push("  QTY "+ent.qty+"  x  "+priceBase+" → "+priceApplied+"  =  "+sub+"  (discounted)");
+          }else{
+            lines.push(item.item);
+            lines.push("  QTY "+ent.qty+"  x  "+priceBase+"  =  "+sub);
+          }
+        }
+
+        if(total === 0){
+          alert("Total is 0. Adjust quantities first.");
+          return null;
+        }
+
+        var serial = state.receiptSerial;
+        state.receiptSerial++;
+
+        var header = [];
+        var ts = stamp();
+        var serialStr = String(serial);
+        while(serialStr.length<4) serialStr = "0"+serialStr;
+
+        header.push("REC#: "+serialStr);
+        header.push("ECOLOGIST TRADE RECEIPT");
+        header.push("--------------------------------");
+        header.push("TIME: "+ts);
+        header.push("MODE: "+mode.toUpperCase()+" ("+(mode==="buy"?"BUYING FROM":"SELLING TO")+")");
+        header.push("WITH: "+party);
+        if(mode === "sell" && discount > 0){
+          header.push("DISCOUNT: "+discount+"% (applied to SELL prices)");
+        }
+        header.push("");
+
+        var txt = header.concat(lines).join("\n");
+        if(mode === "sell" && discount > 0){
+          txt += "\n\n--------------------------------";
+          txt += "\nBASE TOTAL: "+baseTotal;
+          txt += "\nDISCOUNTED TOTAL: "+total+"  (discount applied)";
+        }else{
+          txt += "\n\n--------------------------------\nTOTAL: "+total;
+        }
+
+        $("#receiptBox").textContent = txt;
+        $("#receiptTotalTag").textContent = "TOTAL: "+total;
+
+        if(mode === "buy"){
+          $("#receiptHint").textContent = "Give "+total+" roubles to "+party+".";
+        }else{
+          if(discount > 0){
+            $("#receiptHint").textContent = "Receive "+total+" roubles from "+party+" (discount "+discount+"%).";
+          }else{
+            $("#receiptHint").textContent = "Receive "+total+" roubles from "+party+".";
+          }
+        }
+
+        var obj = {
+          serial: serialStr,
+          time: ts,
+          party: party,
+          mode: mode,
+          total: total,
+          discount: (mode==="sell"?discount:0),
+          baseTotal: baseTotal,
+          body: txt
+        };
+        state.lastReceipt = obj;
+        return obj;
+      }
+
+      function sendReceiptToDesktop(){
+        var r = state.lastReceipt;
+        if(!r || !r.body || !r.total){
+          alert("Generate a receipt first.");
+          return;
+        }
+        state.receiptsQueue.push({
+          kind:"receipt",
+          time: r.time,
+          title: "Receipt "+r.serial,
+          body: r.body
+        });
+        updateBadges();
+        $("#pdaStatus").textContent = "RECEIPT UPLOADED";
+        setTimeout(function(){ $("#pdaStatus").textContent="READY"; }, 700);
+
+        syncToServer();
+      }
+
+      // Desktop window helpers
+      function bringToFront(win){
+        state.winZ++;
+        win.style.zIndex = state.winZ;
+        var app = win.getAttribute("data-app");
+        for(var k in state.desktopTasks){
+          if(state.desktopTasks.hasOwnProperty(k)){
+            state.desktopTasks[k].classList.toggle("active", k === app);
+          }
+        }
+      }
+
+      function makeDraggable(win, handle){
+        var dragging = false;
+        var startX=0,startY=0,ox=0,oy=0;
+
+        handle.addEventListener("mousedown", function(e){
+          dragging = true;
+          bringToFront(win);
+          startX = e.clientX;
+          startY = e.clientY;
+          var r = win.getBoundingClientRect();
+          ox = r.left;
+          oy = r.top;
+          e.preventDefault();
+        });
+        window.addEventListener("mousemove", function(e){
+          if(!dragging) return;
+          var dx = e.clientX - startX;
+          var dy = e.clientY - startY;
+          win.style.left = (ox+dx)+"px";
+          win.style.top  = (oy+dy)+"px";
+        });
+        window.addEventListener("mouseup", function(){
+          dragging = false;
+        });
+      }
+
+      function addTaskButton(app, title){
+        var bar = $("#taskBtns");
+        var btn = document.createElement("div");
+        btn.className = "taskBtn active";
+        btn.textContent = title;
+        btn.onclick = function(){
+          var win = state.desktopWins[app];
+          if(!win) return;
+          win.classList.remove("hide");
+          bringToFront(win);
+        };
+        bar.appendChild(btn);
+        state.desktopTasks[app] = btn;
+        for(var k in state.desktopTasks){
+          if(state.desktopTasks.hasOwnProperty(k)){
+            state.desktopTasks[k].classList.toggle("active", k === app);
+          }
+        }
+      }
+
+      function closeWindow(app){
+        var win = state.desktopWins[app];
+        if(win) win.parentNode.removeChild(win);
+        delete state.desktopWins[app];
+        var t = state.desktopTasks[app];
+        if(t) t.parentNode.removeChild(t);
+        delete state.desktopTasks[app];
+      }
+
+      function openDesktopApp(app){
+        setMode("desktop");
+        if(state.desktopWins[app]){
+          state.desktopWins[app].classList.remove("hide");
+          bringToFront(state.desktopWins[app]);
+          renderDesktopApp(app);
+          return;
+        }
+
+        var titleMap = {
+          reports:"Reports",
+          receipts:"Receipts",
+          intel:"Intel Encyclopaedia",
+          personnel:"Personnel"
+        };
+        var win = document.createElement("div");
+        win.className = "win";
+        win.setAttribute("data-app", app);
+        win.style.left = (180 + Math.random()*170) + "px";
+        win.style.top  = (70  + Math.random()*120) + "px";
+        win.style.zIndex = ++state.winZ;
+
+        win.innerHTML =
+          '<div class="winTitle">'+
+            '<div class="titleText"><div class="miniIcon"></div><div>'+(titleMap[app]||app)+'</div></div>'+
+            '<div class="winButtons">'+
+              '<div class="winBtn" data-act="min">_</div>'+
+              '<div class="winBtn" data-act="close">X</div>'+
+            '</div>'+
+          '</div>'+
+          '<div class="winBody" id="winBody-'+app+'"></div>';
+
+        makeDraggable(win, win.querySelector(".winTitle"));
+        win.addEventListener("mousedown", function(){ bringToFront(win); });
+
+        win.querySelector('[data-act="close"]').onclick = function(){ closeWindow(app); };
+        win.querySelector('[data-act="min"]').onclick   = function(){
+          win.classList.add("hide");
+          for(var k in state.desktopTasks){
+            if(state.desktopTasks.hasOwnProperty(k)){
+              state.desktopTasks[k].classList.remove("active");
+            }
+          }
+        };
+
+        $("#windows").appendChild(win);
+        state.desktopWins[app] = win;
+        addTaskButton(app, titleMap[app]||app);
+        renderDesktopApp(app);
+      }
+
+      function renderDesktopApp(app){
+        var body = $("#winBody-"+app);
+        if(!body) return;
+
+        if(app === "reports"){
+          body.innerHTML =
+            '<div class="w95Panel">'+
+              '<div class="w95Label">Reports</div>'+
+              '<div>Notes inbox + report editor – next pass (will pull from shared sheets).</div>'+
+            '</div>';
+        }else if(app === "receipts"){
+          body.innerHTML =
+            '<div class="w95Panel">'+
+              '<div class="w95Label">Receipts</div>'+
+              '<div class="w95List" id="deskReceiptList"></div>'+
+              '<div style="height:10px"></div>'+
+              '<textarea class="w95Field" id="deskReceiptBody" style="min-height:160px; resize:vertical;" readonly></textarea>'+
+            '</div>';
+          var list = $("#deskReceiptList");
+          var box  = $("#deskReceiptBody");
+          list.innerHTML = "";
+          if(state.receiptsQueue.length === 0){
+            list.innerHTML = '<div class="w95Item">No receipts.</div>';
+          }else{
+            var slice = state.receiptsQueue.slice().reverse();
+            slice.forEach(function(r){
+              var div = document.createElement("div");
+              div.className = "w95Item";
+              div.innerHTML = "<b>"+escapeHtml(r.title||"RECEIPT")+"</b> — "+escapeHtml(r.time||"");
+              div.onclick = function(){ box.value = r.body || ""; };
+              list.appendChild(div);
+            });
+          }
+        }else if(app === "intel"){
+          body.innerHTML =
+            '<div class="w95Panel">'+
+              '<div class="w95Label">Intel Encyclopaedia</div>'+
+              '<div>Placeholder for anomalies, artefacts, locations, etc. (sheet-backed later).</div>'+
+            '</div>';
+        }else if(app === "personnel"){
+          body.innerHTML =
+            '<div class="w95Panel">'+
+              '<div class="w95Label">Personnel</div>'+
+              '<div>Will mirror the shared stalker database from the sheet.</div>'+
+            '</div>';
+        }
+      }
+
+      function wirePDA(){
+        // app tiles hover + open
+        $all(".appTile").forEach(function(t){
+          t.addEventListener("mousemove", function(e){
+            var rect = t.getBoundingClientRect();
+            var x = ((e.clientX - rect.left)/rect.width)*100;
+            var y = ((e.clientY - rect.top)/rect.height)*100;
+            t.style.setProperty("--hx", x+"%");
+            t.style.setProperty("--hy", y+"%");
+          });
+          t.addEventListener("mouseleave", function(){
+            t.style.removeProperty("--hx");
+            t.style.removeProperty("--hy");
+          });
+          t.addEventListener("click", function(){
+            openApp(t.getAttribute("data-open"));
+          });
+        });
+
+        // close buttons
+        $all("[data-close]").forEach(function(b){
+          b.addEventListener("click", function(){
+            closeAllApps();
+            $("#pdaStatus").textContent = "READY";
+          });
+        });
+
+        $("#btnGoDesk").onclick = function(){ setMode("desktop"); };
+        $("#btnReboot").onclick = function(){ runBoot(); };
+        $("#settingsBootBtn").onclick = function(){ runBoot(); };
+
+        // access role
+        $("#accessSeg").onclick = function(e){
+          var b = e.target;
+          if(b.tagName !== "BUTTON") return;
+          $all("#accessSeg button").forEach(function(x){ x.classList.remove("active"); });
+          b.classList.add("active");
+          setRole(b.getAttribute("data-role"));
+        };
+
+        // DB controls
+        $("#dbSearch").oninput = renderDbList;
+        $("#dbAddBtn").onclick = dbAddEntry;
+        $("#dbSaveBtn").onclick = dbSave;
+        $("#dbDeleteBtn").onclick = dbDelete;
+
+        $("#dbStatusSeg").onclick = function(e){
+          var b = e.target;
+          if(b.tagName !== "BUTTON") return;
+          state.dbStatusFilter = b.getAttribute("data-status");
+          $all("#dbStatusSeg button").forEach(function(x){ x.classList.toggle("active", x===b); });
+          renderDbList();
+        };
+
+        $("#nameSortBtn").onclick = function(){
+          state.primarySort = "name";
+          state.nameSortAsc = !state.nameSortAsc;
+          $("#nameSortBtn").textContent = state.nameSortAsc ? "A→Z" : "Z→A";
+          $("#nameSortBtn").classList.add("active");
+          $("#repSortBtn").classList.remove("active");
+          renderDbList();
+        };
+        $("#repSortBtn").onclick = function(){
+          state.primarySort = "rep";
+          state.repSortDesc = !state.repSortDesc;
+          $("#repSortBtn").textContent = state.repSortDesc ? "REP↓" : "REP↑";
+          $("#repSortBtn").classList.add("active");
+          $("#nameSortBtn").classList.remove("active");
+          renderDbList();
+        };
+
+        $("#pStatusSeg").onclick = function(e){
+          var b = e.target;
+          if(b.tagName !== "BUTTON") return;
+          $all("#pStatusSeg button").forEach(function(x){ x.classList.remove("active"); });
+          b.classList.add("active");
+        };
+
+        $("#repUp").onclick = function(){
+          var cur = parseInt($("#pRep").value || "0",10) || 0;
+          var next = cur + 100;
+          $("#pRep").value = String(next);
+          $("#repScorePreview").textContent = String(next);
+          $("#repScorePreview").className = "repScore "+repClass(next);
+        };
+        $("#repDn").onclick = function(){
+          var cur = parseInt($("#pRep").value || "0",10) || 0;
+          var next = cur - 100;
+          $("#pRep").value = String(next);
+          $("#repScorePreview").textContent = String(next);
+          $("#repScorePreview").className = "repScore "+repClass(next);
+        };
+
+        // notes
+        $("#noteSendBtn").onclick = sendNoteToDesktop;
+
+        // trade
+        $("#tradeSearch").oninput = renderTrade;
+        $("#tradeClearQtyBtn").onclick = clearTradeQty;
+        $("#tradeAddItemBtn").onclick = startTradeAddRow;
+
+        $("#tradeModeSeg").onclick = function(e){
+          var b = e.target;
+          if(b.tagName !== "BUTTON") return;
+          setTradeMode(b.getAttribute("data-mode"));
+        };
+
+        $("#tradeGenerateBtn").onclick = function(){ generateReceipt(); };
+        $("#tradeSendReceiptBtn").onclick = sendReceiptToDesktop;
+      }
+
+      function wireDesktop(){
+        $all(".icon", $("#desktop")).forEach(function(ic){
+          ic.ondblclick = function(){
+            openDesktopApp(ic.getAttribute("data-open"));
+          };
+        });
+      }
+
+      function initClocks(){
+        setInterval(function(){
+          var el = $("#pdaClock");
+          if(el) el.textContent = nowClock();
+        }, 300);
+        setInterval(function(){
+          var el = $("#deskClock");
+          if(el){
+            var d = new Date();
+            el.textContent = d.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+          }
+        }, 1000);
+      }
+
+      // --- SYNC HELPERS (Sheets via Web App) ---
+      async function apiGetSheet(sheetName){
+        if(!window.fetch) return null;
+        try{
+          const res = await fetch(UPLINK_URL + '?sheet=' + encodeURIComponent(sheetName),{
+            method:'GET',
+            headers:{'Accept':'application/json'}
+          });
+          if(!res.ok) throw new Error('HTTP '+res.status);
+          const json = await res.json();
+          if(json.status !== 'OK') throw new Error(json.message || 'Bad status');
+          var up = document.getElementById('uplinkStatus');
+          if(up) up.textContent = 'ONLINE';
+          return json;
+        }catch(err){
+          console.error('apiGetSheet', sheetName, err);
+          var up2 = document.getElementById('uplinkStatus');
+          if(up2) up2.textContent = 'ERROR';
+          return null;
+        }
+      }
+
+      async function apiSaveSheet(sheetName, headers, rows){
+        if(!window.fetch) return false;
+        try{
+          const res = await fetch(UPLINK_URL,{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({ targetSheet: sheetName, headers: headers, rows: rows })
+          });
+          if(!res.ok) throw new Error('HTTP '+res.status);
+          const json = await res.json();
+          if(json.status !== 'OK') throw new Error(json.message || 'Bad status');
+          var up = document.getElementById('uplinkStatus');
+          if(up) up.textContent = 'ONLINE';
+          return true;
+        }catch(err){
+          console.error('apiSaveSheet', sheetName, err);
+          var up2 = document.getElementById('uplinkStatus');
+          if(up2) up2.textContent = 'ERROR';
+          return false;
+        }
+      }
+
+      async function loadFromCloud(){
+        if(!window.fetch) return;
+        var up = document.getElementById('uplinkStatus');
+        if(up) up.textContent = 'SYNC';
+        var ses = document.getElementById('sessionBadge');
+        if(ses) ses.textContent = 'SESSION: SYNCING';
+
+        var results = await Promise.all([
+          apiGetSheet('Stalkers'),
+          apiGetSheet('Trade'),
+          apiGetSheet('Notes'),
+          apiGetSheet('Receipts')
+        ]);
+        var stk = results[0], trd = results[1], nts = results[2], rec = results[3];
+
+        var anyCloud = false;
+
+        if(stk && stk.rows && stk.rows.length){
+          anyCloud = true;
+          var h = stk.headers || [];
+          function idx(name){ return h.indexOf(name); }
+          var iId = idx('ID'), iName = idx('Name'), iStatus = idx('Status'),
+              iRep = idx('Rep'), iTask = idx('Task'), iNotes = idx('Notes');
+          state.stalkers = stk.rows.map(function(r){
+            return {
+              id: String(iId >=0 ? r[iId] : ''),
+              name: String(iName >=0 ? r[iName] : ''),
+              status: String(iStatus >=0 ? r[iStatus] : 'Collaborator'),
+              task: String(iTask >=0 ? r[iTask] : ''),
+              rep: Number(iRep >=0 ? r[iRep] : 0) || 0,
+              notes: String(iNotes >=0 ? r[iNotes] : '')
+            };
+          }).filter(function(s){ return s.id; });
+        }
+
+        if(trd && trd.rows && trd.rows.length){
+          anyCloud = true;
+          var ht = trd.headers || [];
+          function idxT(name){ return ht.indexOf(name); }
+          var tiId = idxT('ID'), tiCat = idxT('Category'), tiItem = idxT('Item'),
+              tiBuy = idxT('BuyPrice'), tiSell = idxT('SellPrice'),
+              tiEnabled = idxT('Enabled'), tiCanBuy = idxT('CanBuy'), tiCanSell = idxT('CanSell');
+          state.trade = trd.rows.map(function(r){
+            var buyVal = (tiBuy >=0 ? r[tiBuy] : '');
+            var sellVal = (tiSell >=0 ? r[tiSell] : '');
+            return {
+              id: String(tiId >=0 ? r[tiId] : ''),
+              cat: String(tiCat >=0 ? r[tiCat] : ''),
+              item: String(tiItem >=0 ? r[tiItem] : ''),
+              buy: buyVal === '' || buyVal == null ? null : Number(buyVal),
+              sell: sellVal === '' || sellVal == null ? null : Number(sellVal),
+              enabled: String(tiEnabled >=0 ? r[tiEnabled] : 'TRUE').toLowerCase() !== 'false',
+              canBuy: String(tiCanBuy >=0 ? r[tiCanBuy] : 'TRUE').toLowerCase() !== 'false',
+              canSell: String(tiCanSell >=0 ? r[tiCanSell] : 'TRUE').toLowerCase() !== 'false'
+            };
+          }).filter(function(t){ return t.id; });
+        }
+
+        if(nts && nts.rows){
+          anyCloud = anyCloud || nts.rows.length>0;
+          var hn = nts.headers || [];
+          function idxN(name){ return hn.indexOf(name); }
+          var niTs = idxN('Timestamp'), niTitle = idxN('Title'), niBody = idxN('Body');
+          state.notesQueue = nts.rows.map(function(r){
+            return {
+              kind:'note',
+              time: String(niTs >=0 ? r[niTs] : ''),
+              title: String(niTitle >=0 ? r[niTitle] : 'Field Note'),
+              body: String(niBody >=0 ? r[niBody] : '')
+            };
+          });
+        }
+
+        if(rec && rec.rows){
+          anyCloud = anyCloud || rec.rows.length>0;
+          var hr = rec.headers || [];
+          function idxR(name){ return hr.indexOf(name); }
+          var riSerial = idxR('Serial'), riTs = idxR('Timestamp'),
+              riTitle = idxR('Title'), riBody = idxR('Body');
+          state.receiptsQueue = rec.rows.map(function(r){
+            var serial = riSerial >=0 ? r[riSerial] : '';
+            return {
+              kind:'receipt',
+              time: String(riTs >=0 ? r[riTs] : ''),
+              title: serial ? ('Receipt '+serial) : String(riTitle >=0 ? r[riTitle] : 'Receipt'),
+              body: String(riBody >=0 ? r[riBody] : '')
+            };
+          });
+        }
+
+        if(anyCloud){
+          if(ses) ses.textContent = 'SESSION: CLOUD';
+        }else{
+          if(ses) ses.textContent = 'SESSION: LOCAL';
+        }
+
+        rebuildPartyList();
+        renderDbList();
+        if(state.stalkers.length){
+          state.selectedStalkerId = state.stalkers[0].id;
+          loadProfile(state.selectedStalkerId);
+        }else{
+          loadProfile(null);
+        }
+        renderNotes();
+        renderTrade();
+        updateBadges();
+      }
+
+      function syncToServer(){
+        if(!window.fetch) return;
+
+        var stalkerRows = state.stalkers.map(function(s){
+          return [s.id || '', s.name || '', s.status || '', s.rep || 0, s.task || '', s.notes || ''];
+        });
+
+        var tradeRows = state.trade.map(function(t){
+          return [
+            t.id || '',
+            t.cat || '',
+            t.item || '',
+            t.buy != null ? Number(t.buy) : '',
+            t.sell != null ? Number(t.sell) : '',
+            t.enabled ? 'TRUE' : 'FALSE',
+            t.canBuy ? 'TRUE' : 'FALSE',
+            t.canSell ? 'TRUE' : 'FALSE'
+          ];
+        });
+
+        var notesRows = state.notesQueue.map(function(n){
+          return [n.time || '', n.title || '', n.body || ''];
+        });
+
+        var recRows = state.receiptsQueue.map(function(r){
+          var serial = '';
+          var m = (r.title || '').match(/Receipt\s+(\d+)/i);
+          if(m) serial = m[1];
+          return [serial, r.time || '', '', '', '', '', '', r.body || ''];
+        });
+
+        Promise.all([
+          apiSaveSheet('Stalkers', ['ID','Name','Status','Rep','Task','Notes'], stalkerRows),
+          apiSaveSheet('Trade', ['ID','Category','Item','BuyPrice','SellPrice','Enabled','CanBuy','CanSell'], tradeRows),
+          apiSaveSheet('Notes', ['Timestamp','Title','Body'], notesRows),
+          apiSaveSheet('Receipts', ['Serial','Timestamp','Party','Mode','BaseTotal','Discount','Total','Body'], recRows)
+        ]).then(function(){});
+      }
+
+      function init(){
+        $("#btnPDA").onclick  = function(){ setMode("pda"); };
+        $("#btnDESK").onclick = function(){ setMode("desktop"); };
+
+        window.addEventListener("keydown", function(e){
+          if(e.ctrlKey && e.key === "1"){ setMode("pda"); }
+          if(e.ctrlKey && e.key === "2"){ setMode("desktop"); }
+        });
+
+        wirePDA();
+        wireDesktop();
+        initClocks();
+
+        setMode("pda");
+        setRole(state.role);
+        updateBadges();
+
+        if(state.stalkers.length > 0){
+          state.selectedStalkerId = state.stalkers[0].id;
+        }
+        renderDbList();
+        loadProfile(state.selectedStalkerId);
+        renderNotes();
+        rebuildPartyList();
+        setTradeMode(state.tradeMode);
+
+        runBoot();
+
+        loadFromCloud();
+
+
+      }
+
+      document.addEventListener("DOMContentLoaded", init);
+    })();
+  </script>
+</body>
+</html>
