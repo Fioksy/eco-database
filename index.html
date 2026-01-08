@@ -2477,7 +2477,6 @@
         }, 1000);
       }
 
-      // --- SYNC HELPERS (Sheets via Web App) ---
       async function apiGetSheet(sheetName){
         if(!window.fetch) return null;
         try{
@@ -2487,18 +2486,25 @@
           });
           if(!res.ok) throw new Error('HTTP '+res.status);
           const json = await res.json();
-          if(json.status !== 'OK') throw new Error(json.message || 'Bad status');
+          if(json.status !== 'OK') {
+            console.error('apiGetSheet error', sheetName, json);
+            alert('LOAD ERROR ('+sheetName+'): ' + (json.message || 'Backend returned '+json.status));
+            var upErr = document.getElementById('uplinkStatus');
+            if(upErr) upErr.textContent = 'ERROR';
+            return null;
+          }
           var up = document.getElementById('uplinkStatus');
           if(up) up.textContent = 'ONLINE';
           return json;
         }catch(err){
-          console.error('apiGetSheet', sheetName, err);
+          console.error('apiGetSheet failed', sheetName, err);
+          alert('LOAD ERROR ('+sheetName+'): ' + err.message);
           var up2 = document.getElementById('uplinkStatus');
           if(up2) up2.textContent = 'ERROR';
           return null;
         }
       }
-
+      
       async function apiSaveSheet(sheetName, headers, rows){
         if(!window.fetch) return false;
         try{
@@ -2509,18 +2515,24 @@
           });
           if(!res.ok) throw new Error('HTTP '+res.status);
           const json = await res.json();
-          if(json.status !== 'OK') throw new Error(json.message || 'Bad status');
+          if(json.status !== 'OK') {
+            console.error('apiSaveSheet error', sheetName, json);
+            alert('SAVE ERROR ('+sheetName+'): ' + (json.message || 'Backend returned '+json.status));
+            var upErr = document.getElementById('uplinkStatus');
+            if(upErr) upErr.textContent = 'ERROR';
+            return false;
+          }
           var up = document.getElementById('uplinkStatus');
           if(up) up.textContent = 'ONLINE';
           return true;
         }catch(err){
-          console.error('apiSaveSheet', sheetName, err);
+          console.error('apiSaveSheet failed', sheetName, err);
+          alert('SAVE ERROR ('+sheetName+'): ' + err.message);
           var up2 = document.getElementById('uplinkStatus');
           if(up2) up2.textContent = 'ERROR';
           return false;
         }
       }
-
       async function loadFromCloud(){
         if(!window.fetch) return;
         var up = document.getElementById('uplinkStatus');
@@ -2707,3 +2719,4 @@
   </script>
 </body>
 </html>
+
