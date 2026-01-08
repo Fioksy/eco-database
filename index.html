@@ -2510,7 +2510,8 @@
         try{
           const res = await fetch(UPLINK_URL,{
             method:'POST',
-            headers:{'Content-Type':'application/json'},
+            // Use text/plain so the request is a "simple" POST – no CORS preflight
+            headers:{'Content-Type':'text/plain;charset=utf-8'},
             body:JSON.stringify({ targetSheet: sheetName, headers: headers, rows: rows })
           });
           if(!res.ok) throw new Error('HTTP '+res.status);
@@ -2533,6 +2534,7 @@
           return false;
         }
       }
+
       async function loadFromCloud(){
         if(!window.fetch) return;
         var up = document.getElementById('uplinkStatus');
@@ -2719,4 +2721,5 @@
   </script>
 </body>
 </html>
+
 
