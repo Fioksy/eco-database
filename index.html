@@ -2737,27 +2737,33 @@
       async function apiAppendRows(sheetName, rows){
         if(!rows || !rows.length) return {status:'ok', appended:0};
         try{
-          const res = await fetch(UPLINK_URL,{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({
-              action:"appendRows",
-              sheet:sheetName,
-              rows:rows
+          const res = await fetch(UPLINK_URL, {
+            method: 'POST',
+            // Use text/plain so the browser does NOT do a CORS preflight OPTIONS request.
+            // Apps Script will still see the JSON string in e.postData.contents.
+            headers: { 'Content-Type': 'text/plain;charset=utf-8', 'Accept': 'application/json' },
+            body: JSON.stringify({
+              action: "appendRows",
+              sheet: sheetName,
+              rows: rows
             })
           });
-          if(!res.ok) throw new Error('HTTP '+res.status);
+      
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+      
           const json = await res.json();
-          if(json.status !== 'ok'){
-            return {status:'error', message:(json.message || 'Backend error')};
+          if (json.status !== 'ok') {
+            return { status: 'error', message: (json.message || 'Backend error') };
           }
+      
           setConnStatus("ONLINE");
           return json;
-        }catch(err){
+        } catch (err) {
           console.error('apiAppendRows failed', sheetName, err);
-          return {status:'error', message:(err.message || 'Failed to save to uplink.')};
+          return { status: 'error', message: (err.message || 'Failed to save to uplink.') };
         }
       }
+
 
       function headerIndex(headers, name){
         const low = name.toLowerCase();
@@ -3259,3 +3265,4 @@
   </script>
 </body>
 </html>
+
